@@ -1,0 +1,5 @@
+find ~ -type f -size +10000k -exec ls -lh {} \; 2>/dev/null | awk '{print $9 " : " $5}' | sort -k2 -r | grep -v -E 'CLion.app|.brew'
+echo ""
+du -sh ~/Library | awk '{print "Library(cache) size is " $1}'
+df -h | awk END{print} | awk '{print "Available " $4 " / " $2}'
+#du -sh $(find ~ -type d -d 1 2> /dev/null) 2> /dev/null

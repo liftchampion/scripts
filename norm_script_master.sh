@@ -1,1 +1,1 @@
-norminette $* | ./norm_script.sh
+norminette $* | ~/Scripts/norm_script.sh

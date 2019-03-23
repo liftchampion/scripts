@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-awk 'BEGIN {buf = "lol"}
+norminette $* | awk 'BEGIN {buf = "lol"}
 {
     if (buf != "lol" && $1 == "Norme:")
     {

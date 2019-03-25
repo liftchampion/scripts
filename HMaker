@@ -2,12 +2,67 @@
 
 import os
 import sys
+import time
 import string
 
-path = os.getcwd() + '/' + sys.argv[1]
-name = os.getcwd() + '/' + sys.argv[2]
+if len(sys.argv) == 1:
+	arg1 = '.'
+	arg2 = '.'
+if len(sys.argv) == 2:
+	arg1 = sys.argv[1]
+	arg2 = sys.argv[1]
+if len(sys.argv) == 3:
+	arg1 = sys.argv[1]
+	arg2 = sys.argv[2]
+if len(sys.argv) > 3:
+	sys.exit('\033[91m' + "ERROR. so many arguments" + '\033[0m')
+
+start = os.getcwd()
+
+if os.path.exists(arg1) and os.path.isdir(arg1) and len(os.listdir(arg1)) != 0:
+	os.chdir(arg1)
+	path = os.getcwd()
+	os.chdir(start)
+else:
+	sys.exit('\033[91m' + "ERROR. directory is empty or does not exist" + '\033[0m')
+
+if arg2[-2:] != '.h' and (not os.path.exists(arg2) or not os.path.isdir(arg2)):
+	sys.exit('\033[91m' + "ERROR. header name wrong or dir does not exist" + '\033[0m')
+
+if (os.path.exists(arg2) and os.path.isdir(arg2)):
+	if arg2 == '/':
+		path_to_head = ''
+	else:
+		os.chdir(arg2)
+		path_to_head = os.getcwd()
+		os.chdir(start)
+	arg2 = path[path.rfind('/') + 1:] + '.h'
+elif '/' in arg2:
+	if os.path.exists(arg2[:arg2.rfind('/')]) and os.path.isdir(arg2[:arg2.rfind('/')]):
+		os.chdir(arg2[:arg2.rfind('/')])
+		path_to_head = os.getcwd()
+		os.chdir(start)
+		arg2 = arg2[arg2.rfind('/') + 1:]
+	elif arg2.rfind('/') == 0:
+		path_to_head = ''
+		arg2 = arg2[1:]
+	else:
+		sys.exit('\033[91m' + "ERROR. i think u give me wrong path" + '\033[0m')
+else:
+	path_to_head = path
+name = path_to_head + '/' + arg2
+
+if os.path.exists(name):
+	ans = raw_input('\033[91m' + "File with the same name already exists. Replace?[y/n]" + '\033[0m').upper()
+	while ans != 'Y' and ans != 'N':
+		ans = raw_input('\033[93m' + "Pleas write [y/n]" + '\033[0m').upper()
+	if (ans.upper() == 'N'):
+		sys.exit()
+
 ifndefname = name[name.rfind("/") + 1 : -2].upper() + '_H'
-shapka = "/* ************************************************************************** */\n/*                                                                            */\n/*                                                        :::      ::::::::   */\n/*   shapka                                             :+:      :+:    :+:   */\n/*                                                    +:+ +:+         +:+     */\n/*   By: bmiklaz <marvin@42.fr>                     +#+  +:+       +#+        */\n/*                                                +#+#+#+#+#+   +#+           */\n/*   Created: 2018/11/21 22:39:20 by bmiklaz           #+#    #+#             */\n/*   Updated: 2018/11/21 22:40:18 by bmiklaz          ###   ########.fr       */\n/*                                                                            */\n/* ************************************************************************** */\n"
+
+shapka = "/* ************************************************************************** */\n/*                                                                            */\n/*                                                        :::      ::::::::   */\n/*   shapka                                             :+:      :+:    :+:   */\n/*                                                    +:+ +:+         +:+     */\n/*   By: " + os.getlogin() + " <marvin@42.fr>" + " " * (28 - len(os.getlogin())) + "+#+  +:+       +#+        */\n/*                                                +#+#+#+#+#+   +#+           */\n/*   Created: " + time.strftime('%Y/%m/%d %H:%M:%S', time.localtime(time.time())) + " by " + os.getlogin() + " " * (18 - len(os.getlogin())) + "#+#    #+#             */\n/*   Updated: " + time.strftime('%Y/%m/%d %H:%M:%S', time.localtime(time.time())) + " by " + os.getlogin() + " " * (17 - len(os.getlogin())) + "###   ########.fr       */\n/*                                                                            */\n/* ************************************************************************** */\n"
+
 functions = []
 libs = set()
 comment = False
@@ -15,10 +70,16 @@ longfunc = False
 maxt = 0
 
 fils = os.listdir(path)
-with open(name, 'w') as f:
-	f.write(shapka + '\n#ifndef ' + ifndefname + '\n# define ' + ifndefname + '\n')
+try:
+	with open(name, 'w') as f:
+		f.write(shapka + '\n#ifndef ' + ifndefname + '\n# define ' + ifndefname + '\n')
+except IOError:
+	sys.exit('\033[91m' + "ERROR. cant write in directory " + '\033[1m\033[93m' + path_to_head + '/' + '\033[0m')
+
+#with open(name, 'w') as f:
+#	f.write(shapka + '\n#ifndef ' + ifndefname + '\n# define ' + ifndefname + '\n')
 for i in fils:
-	if '.c' in i and i != 'main.c':
+	if '.c' == i[-2:] and i != 'main.c':
 		print (i[:-2])
 		functions.append([])
 		with open(path + '/' + i) as prototip:
@@ -46,23 +107,26 @@ for i in fils:
 						maxt = len(j[:j.find('\t')])
 					if j[-1] != ')':
 						longfunc = True
+			if len(functions[-1]):
+				functions[-1].append(['', '/*\n**\t' + i + '\n*/\n'])
 for i in libs:
 	with open(name, 'a') as f:
 		f.write('# include ' + i + '\n')
 with open(name, 'a') as f:
 	f.write('\n');
 for j in functions:
-	for i in j:
-		s = i[0] + '\t' * ((maxt + (maxt % 4)) / 4 - len(i[0]) / 4 + 1) + i[1] + ';\n'
-		s = s.split(', ')
-		if (maxt - (maxt % 4) + 8) + len(i[1]) + 1 > 80:
-			while len(s[0]) + len(s[1]) + (maxt - (maxt % 4) + 8) + 1 - (maxt - (maxt % 4) + 8) / 4 <= 80:
-				s[0] = s.pop(0) + ', ' + s[0]
-			with open(name, 'a') as f:
-				f.write(s.pop(0) + ',\n' + '\t' * (1 + (maxt + maxt % 4) / 4))
+	if len(j):
 		with open(name, 'a') as f:
-			f.write(', '.join(s))
-	with open(name, 'a') as f:
-		f.write('\n')
+			f.write(j.pop(-1)[1])
+		for i in j:
+			s = i[0] + '\t' * ((maxt + (maxt % 4)) / 4 - len(i[0]) / 4 + 1) + i[1] + ';\n'
+			s = s.split(', ')
+			if (maxt - (maxt % 4) + 8) + len(i[1]) + 1 > 80:
+				while len(s[0]) + len(s[1]) + (maxt - (maxt % 4) + 8) + 1 - (maxt - (maxt % 4) + 8) / 4 <= 80:
+					s[0] = s.pop(0) + ', ' + s[0]
+				with open(name, 'a') as f:
+					f.write(s.pop(0) + ',\n' + '\t' * (1 + (maxt + maxt % 4) / 4))
+			with open(name, 'a') as f:
+				f.write(', '.join(s))
 with open(name, 'a') as f:
-	f.write('#endif\n')
+	f.write('\n#endif\n')

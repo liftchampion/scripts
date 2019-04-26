@@ -6,7 +6,7 @@
 #    By: ggerardy <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/04/25 18:53:10 by ggerardy          #+#    #+#              #
-#    Updated: 2019/04/26 20:06:05 by ggerardy         ###   ########.fr        #
+#    Updated: 2019/04/26 22:09:50 by ggerardy         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -24,9 +24,8 @@ fi
 
 ################  CHECK PREV ALIASES TO COLORISED NORM  ########################
 PREV_ALIAS_TO_THIS=$(cat ~/.zshrc | grep '^alias.\+colorised_norm\.sh')
-PREV_ALIAS_TO_THIS_COUNT=$(echo $PREV_ALIAS_TO_THIS | wc -w)
 
-if (( $PREV_ALIAS_TO_THIS_COUNT > 1)); then
+if [[ $PREV_ALIAS_TO_THIS != "" ]]; then
 	ALIASNAME=$(echo $PREV_ALIAS_TO_THIS | sed 's/alias //g' | \
 					awk -F '=' '{print $1}')
 	DIRNAME=$(echo $PREV_ALIAS_TO_THIS | sed 's/^.*=//g' | \
@@ -37,11 +36,6 @@ if (( $PREV_ALIAS_TO_THIS_COUNT > 1)); then
 fi
 
 #############################  GET ALIASNAME ###################################
-function check_free_alias {
-	$SAME_ALIASES=$(cat ~/.zshrc | grep "^alias $ALIASNAME=" | grep -v 'colorised_norm.sh')
-	$SAME_ALIASES_COUNT=$(echo $SAME_ALIASES | wc -w)
-}
-
 function get_alias_name {
 	echo "Choose alias name (leave blank for '$ALIASNAME') :"
 	read NEW_ALIASNAME
@@ -62,12 +56,13 @@ function get_alias_name {
 			exit 0
 		fi
 		get_alias_name
-	else
+	elif (( $WORDS_IN_NEW_ALIASNAME == 1 )) ; then
 		ALIASNAME=$NEW_ALIASNAME
 	fi
 }
 get_alias_name
-##################  CHECK PREV ALIASES WITH SAME NAME  ########################
+#########################  RM PREV ALIAS TO THIS ###############################
+
 
 
 echo "alias $ALIASNAME='$DIRNAME""colorised_norm.sh'"

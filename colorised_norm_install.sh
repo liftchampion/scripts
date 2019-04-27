@@ -6,7 +6,7 @@
 #    By: ggerardy <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/04/25 18:53:10 by ggerardy          #+#    #+#              #
-#    Updated: 2019/04/27 22:46:12 by ggerardy         ###   ########.fr        #
+#    Updated: 2019/04/27 22:57:43 by ggerardy         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -33,9 +33,8 @@ function find_prev_alias {
 						awk -F '=' '{print $1}')
 		DIRNAME=$(echo $PREV_ALIAS_TO_THIS | sed 's/^.*=//g' | \
 						awk -F '/' '{$NF=""; print $0}' | tr ' ' '/' | tr -d "'")
-		echo "Found prev alias to this"
-		echo $ALIASNAME
-		echo $DIRNAME
+		echo "Found \x1B[38;5;202mexisting\x1B[0m alias to this script:"
+		echo "alias \x1B[38;5;29m$ALIASNAME\x1B[0m='\x1B[38;5;29m$DIRNAME""colorised_norm.sh\x1B[0m'"
 	fi
 }
 #############################  GET ALIASNAME  ###################################
@@ -84,6 +83,7 @@ function ask_mode {
 			rm -f $DIRNAME"colorised_norm.sh"
 			exit 0
 		fi
+	fi
 }
 
 ################################  INSTALL  ######################################

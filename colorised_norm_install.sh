@@ -6,7 +6,7 @@
 #    By: ggerardy <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/04/25 18:53:10 by ggerardy          #+#    #+#              #
-#    Updated: 2019/04/26 22:09:50 by ggerardy         ###   ########.fr        #
+#    Updated: 2019/04/27 22:25:27 by ggerardy         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,27 +15,31 @@
 DIRNAME=~/.scripts
 ALIASNAME=norminette
 
-#############################  CHECK ZSHRC #####################################
-ISZSHRC=$(find ~ -d 1 -name '.zshrc' 2> /dev/null | wc -w)
-if (( $ISZSHRC == 0)); then
-	echo "No ~/.zshrc found. Sorry"
-	exit 1
-fi
+#############################  CHECK ZSHRC  ####################################
 
+function check_zshrc {
+	ISZSHRC=$(find ~ -d 1 -name '.zshrc' 2> /dev/null | wc -w)
+	if (( $ISZSHRC == 0)); then
+		echo "No ~/.zshrc found. Sorry"
+		exit 1
+	fi
+}
 ################  CHECK PREV ALIASES TO COLORISED NORM  ########################
-PREV_ALIAS_TO_THIS=$(cat ~/.zshrc | grep '^alias.\+colorised_norm\.sh')
 
-if [[ $PREV_ALIAS_TO_THIS != "" ]]; then
-	ALIASNAME=$(echo $PREV_ALIAS_TO_THIS | sed 's/alias //g' | \
-					awk -F '=' '{print $1}')
-	DIRNAME=$(echo $PREV_ALIAS_TO_THIS | sed 's/^.*=//g' | \
-					awk -F '/' '{$NF=""; print $0}' | tr ' ' '/' | tr -d "'")
-	echo "Found prev alias to this"
-	echo $ALIASNAME
-	echo $DIRNAME
-fi
+function find_prev_alias {
+	PREV_ALIAS_TO_THIS=$(cat ~/.zshrc | grep '^alias.\+colorised_norm\.sh')
+	if [[ $PREV_ALIAS_TO_THIS != "" ]]; then
+		ALIASNAME=$(echo $PREV_ALIAS_TO_THIS | sed 's/alias //g' | \
+						awk -F '=' '{print $1}')
+		DIRNAME=$(echo $PREV_ALIAS_TO_THIS | sed 's/^.*=//g' | \
+						awk -F '/' '{$NF=""; print $0}' | tr ' ' '/' | tr -d "'")
+		echo "Found prev alias to this"
+		echo $ALIASNAME
+		echo $DIRNAME
+	fi
+}
+#############################  GET ALIASNAME  ###################################
 
-#############################  GET ALIASNAME ###################################
 function get_alias_name {
 	echo "Choose alias name (leave blank for '$ALIASNAME') :"
 	read NEW_ALIASNAME
@@ -61,9 +65,32 @@ function get_alias_name {
 	fi
 }
 get_alias_name
-#########################  RM PREV ALIAS TO THIS ###############################
 
+#########################  RM PREV ALIAS TO THIS  ###############################
+function rm_prev_alias {
+	set -e
+	cat ~/.zshrc | grep -v "$PREV_ALIAS_TO_THIS" > ~/.zshrc.backup.colorised_norm
+	cat ~/.zshrc.backup.colorised_norm > ~/.zshrc
+	rm -f ~/.zshrc.backup.colorised_norm
+	set +e
+}
 
+###############################  ASK MODE  ######################################
+function ask_mode {
+	if [[ $PREV_ALIAS_TO_THIS != "" ]]; then
+		printf "Installed version found\nWould you like to Reinstall/Delete?\n[R/d]: "
+		read Q_RES
+		if [[ "$Q_RES" == 'd' ]] || [[ "$Q_RES" == 'D' ]]; then
+			rm_prev_alias
+			rm -f $DIRNAME"colorised_norm.sh"
+			exit 0
+		fi
+}
+
+#############################  FIRST CHECKS  ####################################
+check_zshrc
+find_prev_alias
+ask_mode
 
 echo "alias $ALIASNAME='$DIRNAME""colorised_norm.sh'"
 #echo $PREV_ALIAS_TO_THIS

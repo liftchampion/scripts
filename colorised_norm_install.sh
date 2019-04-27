@@ -6,7 +6,7 @@
 #    By: ggerardy <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/04/25 18:53:10 by ggerardy          #+#    #+#              #
-#    Updated: 2019/04/27 22:25:27 by ggerardy         ###   ########.fr        #
+#    Updated: 2019/04/27 22:46:12 by ggerardy         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -64,7 +64,6 @@ function get_alias_name {
 		ALIASNAME=$NEW_ALIASNAME
 	fi
 }
-get_alias_name
 
 #########################  RM PREV ALIAS TO THIS  ###############################
 function rm_prev_alias {
@@ -87,10 +86,32 @@ function ask_mode {
 		fi
 }
 
-#############################  FIRST CHECKS  ####################################
+################################  INSTALL  ######################################
+function install_script {
+	PWD=$(pwd)
+	TMP_DIRNAME=~/.tmp_for_installing_norm_script
+	echo "\x1B[38;5;202mInstallation in progress...\x1B[0m"
+	mkdir -p $TMP_DIRNAME
+	cd $TMP_DIRNAME
+	git init --quiet
+	git remote add origin \
+			https://liftchampion@bitbucket.org/liftchampion/scripts.git 2> /dev/null
+	git fetch --quiet
+	git checkout --quiet origin/master -- colorised_norm.sh
+	mv colorised_norm.sh $DIRNAME
+	cd $PWD
+	rm -rf $TMP_DIRNAME
+	echo "alias $ALIASNAME='$DIRNAME""colorised_norm.sh'" >> ~/.zshrc
+	source ~/.zshrc
+	echo "\x1B[38;5;29mDone!\x1B[0m"
+}
+
+####################################  MAIN  ######################################
 check_zshrc
 find_prev_alias
 ask_mode
+get_alias_name
+install_script
 
 echo "alias $ALIASNAME='$DIRNAME""colorised_norm.sh'"
 #echo $PREV_ALIAS_TO_THIS

@@ -6,7 +6,7 @@
 #    By: ggerardy <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/04/25 18:53:10 by ggerardy          #+#    #+#              #
-#    Updated: 2019/04/28 17:07:45 by ggerardy         ###   ########.fr        #
+#    Updated: 2019/04/28 17:37:55 by ggerardy         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -69,13 +69,16 @@ function get_alias_name {
 	fi
 }
 
-#############################  GET ALIASNAME  ###################################
+#############################  GET DIRNAME  ###################################
+function add_slash_to_dirname {
+	NEW_DIRNAME=$(echo $NEW_DIRNAME | sed 's/\/$//g' | sed 's/$/\//g')
+}
 
 function get_dir_name {
 	echo "Choose directory (leave blank for '$DIRNAME') :"
 	read NEW_DIRNAME
-	NEW_DIRNAME=$(echo $NEW_DIRNAME | tr -d '\n' | sed "s/~/$HOME/g")
-	echo $NEW_DIRNAME
+	SCREENED_HOME=$(echo $HOME | sed 's/\//\\\//g')
+	NEW_DIRNAME=$(echo $NEW_DIRNAME | tr -d '\n' | sed "s/~/$SCREENED_HOME/g")
 	WORDS_IN_NEW_DIRNAME=$(echo $NEW_DIRNAME | wc -w)
 	if (( $WORDS_IN_NEW_DIRNAME > 1 )); then
 		echo "Bad directory: '$NEW_DIRNAME'"
@@ -86,9 +89,20 @@ function get_dir_name {
 		fi
 		get_dir_name
 	else
-		mkdir -p $NEW_DIRNAME
-		if [ ! -d "$NEW_DIRNAME" ]; then
-			echo "1"
+		add_slash_to_dirname
+		mkdir -p $NEW_DIRNAME 2> /dev/null
+		touch "${NEW_DIRNAME}/.test_file_for_installing_colorised_norm" 2> /dev/null
+		if [ ! -d "$NEW_DIRNAME" ] || [ ! -f "${NEW_DIRNAME}/.test_file_for_installing_colorised_norm" ]; then	
+			echo "Bad directory: '$NEW_DIRNAME'"
+			printf "Try again (Y/n): "
+			read Q_RES
+			if [[ "$Q_RES" == 'n' ]] || [[ "$Q_RES" == 'N' ]]; then
+				exit 0
+			fi
+			get_dir_name
+		else
+			rm -f "${NEW_DIRNAME}/.test_file_for_installing_colorised_norm" 2> /dev/null
+			DIRNAME=$NEW_DIRNAME
 		fi
 	fi
 }
@@ -142,8 +156,6 @@ function install_script {
 }
 
 ####################################  MAIN  ######################################
-get_dir_name
-exit 0
 check_zshrc
 find_prev_alias
 ask_mode

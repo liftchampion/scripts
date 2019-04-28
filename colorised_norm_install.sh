@@ -6,7 +6,7 @@
 #    By: ggerardy <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/04/25 18:53:10 by ggerardy          #+#    #+#              #
-#    Updated: 2019/04/28 18:06:09 by ggerardy         ###   ########.fr        #
+#    Updated: 2019/04/28 18:32:27 by ggerardy         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -163,16 +163,54 @@ function install_script {
 	rm -rf $TMP_DIRNAME
 	echo "alias $ALIASNAME='${DIRNAME}colorised_norm.sh'" >> ~/.zshrc
 	echo "\x1B[38;5;29mDone!\x1B[0m"
-	ask_reopen
+}
+
+##################################  SETTINGS  ####################################
+NORM_COLOR=29
+NO_NORM_COLOR=202
+
+function print_example {
+	echo "\nCurrent colors are \x1B[38;5;${NORM_COLOR}m$NORM_COLOR\x1B[0m \x1B[38;5;${NO_NORM_COLOR}m$NO_NORM_COLOR\x1B[0m:"
+	echo "'\x1B[38;5;${NO_NORM_COLOR}mNorme: /Users/ggerardy/CLION/FDF/ft_fdf_events.c\x1B[0m"
+	echo " Error: file must end with a single empty line"
+	echo " \x1B[38;5;${NORM_COLOR}mNorme: /Users/ggerardy/CLION/FDF/main.c\x1B[0m'\n"
+}
+
+function print_colors {
+	for (( b = 0; b < 16; b++ ))
+	do
+		for (( a = 1; a <= 16; a++ ))
+		do
+			code=$(( b * 16 + a ))
+			printf "\x1B[38;5;${code}m%3d\x1B[0m " $code
+		done
+		printf "\n"
+	done
+}
+
+function set_colors {
+	echo ""
+}
+
+function ask_color_set {
+	echo "Would you like to set custom \x1B[38;5;128mcolors\x1B[0m? [y/N]"
+	read Q_RES
+	if [[ "$Q_RES" == 'y' ]] || [[ "$Q_RES" == 'Y' ]]; then
+		print_example
+	fi
 }
 
 ####################################  MAIN  ######################################
+print_colors
+exit 0
 check_zshrc
 find_prev_alias
 ask_mode
 get_alias_name
 get_dir_name
 install_script
+ask_color_set
+ask_reopen
 
 echo "alias $ALIASNAME='${DIRNAME}colorised_norm.sh'"
 #echo $PREV_ALIAS_TO_THIS

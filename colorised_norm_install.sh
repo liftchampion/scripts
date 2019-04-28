@@ -6,7 +6,7 @@
 #    By: ggerardy <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/04/25 18:53:10 by ggerardy          #+#    #+#              #
-#    Updated: 2019/04/28 17:37:55 by ggerardy         ###   ########.fr        #
+#    Updated: 2019/04/28 18:06:09 by ggerardy         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -26,7 +26,7 @@ function check_zshrc {
 }
 ################################  ASK REOPEN  ##################################
 function ask_reopen {
-	echo "Reopen your terminal, please"
+	echo "\x1B[38;5;82mReopen\x1B[0m your \x1B[38;5;82mterminal\x1B[0m, please"
 }
 
 ################  CHECK PREV ALIASES TO COLORISED NORM  ########################
@@ -45,15 +45,14 @@ function find_prev_alias {
 #############################  GET ALIASNAME  ###################################
 
 function get_alias_name {
-	echo "Choose alias name (leave blank for '$ALIASNAME') :"
+	echo "Choose \x1B[38;5;128malias name\x1B[0m (leave blank for '$ALIASNAME'):"
 	read NEW_ALIASNAME
 	NEW_ALIASNAME=$(echo $NEW_ALIASNAME | tr -d '\n')
 	WORDS_IN_NEW_ALIASNAME=$(echo $NEW_ALIASNAME | wc -w)
 	SAME_ALIASES=$(cat ~/.zshrc | grep "^alias $NEW_ALIASNAME=" | grep -v 'colorised_norm.sh')
-	echo $SAME_ALIASES
 	SAME_ALIASES_COUNT=$(echo $SAME_ALIASES | wc -w)
 	if (( $WORDS_IN_NEW_ALIASNAME > 1)) || (( $SAME_ALIASES_COUNT > 0)); then
-		echo "Bad aliasname: '$NEW_ALIASNAME'"
+		echo "\x1B[38;5;160mBad aliasname: '$NEW_ALIASNAME'\x1B[0m"
 		if (( $SAME_ALIASES_COUNT > 0)); then
 			echo "Alias with this name already exists"
 			echo $SAME_ALIASES
@@ -74,12 +73,23 @@ function add_slash_to_dirname {
 	NEW_DIRNAME=$(echo $NEW_DIRNAME | sed 's/\/$//g' | sed 's/$/\//g')
 }
 
+function add_pwd_if_needed {
+	FIRST_CHAR=$(echo $NEW_DIRNAME | cut -c 1)
+	SCREENED_PWD=$(pwd | sed 's/\//\\\//g' | sed 's/$/\\\//g')
+	if [[ "$FIRST_CHAR" != "~" ]] && [[ "$FIRST_CHAR" != "/" ]]; then
+		NEW_DIRNAME=$(echo $NEW_DIRNAME | sed "s/^/$SCREENED_PWD/g")
+	fi
+}
+
 function get_dir_name {
-	echo "Choose directory (leave blank for '$DIRNAME') :"
+	echo "Choose \x1B[38;5;128mdirectory\x1B[0m (leave blank for '$DIRNAME'):"
 	read NEW_DIRNAME
 	SCREENED_HOME=$(echo $HOME | sed 's/\//\\\//g')
 	NEW_DIRNAME=$(echo $NEW_DIRNAME | tr -d '\n' | sed "s/~/$SCREENED_HOME/g")
 	WORDS_IN_NEW_DIRNAME=$(echo $NEW_DIRNAME | wc -w)
+	if (( $WORDS_IN_NEW_DIRNAME == 0 )); then
+		NEW_DIRNAME=$DIRNAME
+	fi
 	if (( $WORDS_IN_NEW_DIRNAME > 1 )); then
 		echo "Bad directory: '$NEW_DIRNAME'"
 		printf "Try again (Y/n): "
@@ -89,11 +99,12 @@ function get_dir_name {
 		fi
 		get_dir_name
 	else
+		add_pwd_if_needed
 		add_slash_to_dirname
 		mkdir -p $NEW_DIRNAME 2> /dev/null
 		touch "${NEW_DIRNAME}/.test_file_for_installing_colorised_norm" 2> /dev/null
 		if [ ! -d "$NEW_DIRNAME" ] || [ ! -f "${NEW_DIRNAME}/.test_file_for_installing_colorised_norm" ]; then	
-			echo "Bad directory: '$NEW_DIRNAME'"
+			echo "\x1B[38;5;160mBad directory: '$NEW_DIRNAME'\x1B[0m"
 			printf "Try again (Y/n): "
 			read Q_RES
 			if [[ "$Q_RES" == 'n' ]] || [[ "$Q_RES" == 'N' ]]; then
@@ -120,7 +131,7 @@ function rm_prev_alias {
 ###############################  ASK MODE  ######################################
 function ask_mode {
 	if [[ $PREV_ALIAS_TO_THIS != "" ]]; then
-		printf "Installed version found\nWould you like to Reinstall/Delete/Exit?\n[R/d/e]: "
+		printf "Would you like to Reinstall/Delete/Exit?\n[R/d/e]: "
 		read Q_RES
 		if [[ "$Q_RES" == 'd' ]] || [[ "$Q_RES" == 'D' ]]; then
 			rm_prev_alias

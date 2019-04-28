@@ -6,7 +6,7 @@
 #    By: ggerardy <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/04/25 18:53:10 by ggerardy          #+#    #+#              #
-#    Updated: 2019/04/28 18:32:27 by ggerardy         ###   ########.fr        #
+#    Updated: 2019/04/28 19:13:28 by ggerardy         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -177,6 +177,7 @@ function print_example {
 }
 
 function print_colors {
+	echo "Possible colors is\n"
 	for (( b = 0; b < 16; b++ ))
 	do
 		for (( a = 1; a <= 16; a++ ))
@@ -188,8 +189,24 @@ function print_colors {
 	done
 }
 
-function set_colors {
-	echo ""
+function read_colors {
+	echo "Write norm color (leave blank for \x1B[38;5;${NORM_COLOR}m$NORM_COLOR\x1B[0m)"
+	read NEW_NORM_COLOR
+	if [[ "$NEW_NORM_COLOR" == "" ]]; then
+		NEW_NORM_COLOR=$NORM_COLOR
+	fi
+	echo "Write NON-norm color (leave blank for \x1B[38;5;${NO_NORM_COLOR}m$NO_NORM_COLOR\x1B[0m)"
+	read NEW_NO_NORM_COLOR
+	if [[ "$NEW_NO_NORM_COLOR" == "" ]]; then
+		NEW_NO_NORM_COLOR=$NO_NORM_COLOR
+	fi
+	if ! [[ "$NEW_NORM_COLOR" =~ ^[0-9]+$ ]] || ! [[ "$NEW_NO_NORM_COLOR" =~ ^[0-9]+$ ]] ||
+		(( $NEW_NORM_COLOR > 256 )) || (( $NEW_NO_NORM_COLOR > 256 )) ||
+		(( $NEW_NORM_COLOR <= 0 )) || (( $NEW_NO_NORM_COLOR <= 0 ))
+		then
+			echo "\x1B[38;5;160mBad color(s)\x1B[0m"
+			read_colors
+	fi
 }
 
 function ask_color_set {
@@ -197,11 +214,14 @@ function ask_color_set {
 	read Q_RES
 	if [[ "$Q_RES" == 'y' ]] || [[ "$Q_RES" == 'Y' ]]; then
 		print_example
+		print_colors
+		echo ""
+		read_colors
 	fi
 }
 
 ####################################  MAIN  ######################################
-print_colors
+ask_color_set
 exit 0
 check_zshrc
 find_prev_alias

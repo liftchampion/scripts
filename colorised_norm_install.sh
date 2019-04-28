@@ -6,7 +6,7 @@
 #    By: ggerardy <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/04/25 18:53:10 by ggerardy          #+#    #+#              #
-#    Updated: 2019/04/28 00:31:47 by ggerardy         ###   ########.fr        #
+#    Updated: 2019/04/28 17:07:45 by ggerardy         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -74,25 +74,22 @@ function get_alias_name {
 function get_dir_name {
 	echo "Choose directory (leave blank for '$DIRNAME') :"
 	read NEW_DIRNAME
-	NEW_DIRNAME=$(echo $NEW_DIRNAME | tr -d '\n')
+	NEW_DIRNAME=$(echo $NEW_DIRNAME | tr -d '\n' | sed "s/~/$HOME/g")
+	echo $NEW_DIRNAME
 	WORDS_IN_NEW_DIRNAME=$(echo $NEW_DIRNAME | wc -w)
-	SAME_ALIASES=$(cat ~/.zshrc | grep "^alias $NEW_ALIASNAME=" | grep -v 'colorised_norm.sh')
-	echo $SAME_ALIASES
-	SAME_ALIASES_COUNT=$(echo $SAME_ALIASES | wc -w)
-	if (( $WORDS_IN_NEW_ALIASNAME > 1)) || (( $SAME_ALIASES_COUNT > 0)); then
-		echo "Bad aliasname: '$NEW_ALIASNAME'"
-		if (( $SAME_ALIASES_COUNT > 0)); then
-			echo "Alias with this name already exists"
-			echo $SAME_ALIASES
-		fi
+	if (( $WORDS_IN_NEW_DIRNAME > 1 )); then
+		echo "Bad directory: '$NEW_DIRNAME'"
 		printf "Try again (Y/n): "
 		read Q_RES
 		if [[ "$Q_RES" == 'n' ]] || [[ "$Q_RES" == 'N' ]]; then
 			exit 0
 		fi
-		get_alias_name
-	elif (( $WORDS_IN_NEW_ALIASNAME == 1 )) ; then
-		ALIASNAME=$NEW_ALIASNAME
+		get_dir_name
+	else
+		mkdir -p $NEW_DIRNAME
+		if [ ! -d "$NEW_DIRNAME" ]; then
+			echo "1"
+		fi
 	fi
 }
 
@@ -103,7 +100,6 @@ function rm_prev_alias {
 	cat ~/.zshrc.backup.colorised_norm > ~/.zshrc
 	rm -f ~/.zshrc.backup.colorised_norm
 	rm -f ${DIRNAME}colorised_norm.sh
-	ask_reopen
 	set +e
 }
 
@@ -114,6 +110,7 @@ function ask_mode {
 		read Q_RES
 		if [[ "$Q_RES" == 'd' ]] || [[ "$Q_RES" == 'D' ]]; then
 			rm_prev_alias
+			ask_reopen
 			exit 0
 		fi
 		if [[ "$Q_RES" == 'e' ]] || [[ "$Q_RES" == 'E' ]]; then
@@ -145,10 +142,13 @@ function install_script {
 }
 
 ####################################  MAIN  ######################################
+get_dir_name
+exit 0
 check_zshrc
 find_prev_alias
 ask_mode
 get_alias_name
+get_dir_name
 install_script
 
 echo "alias $ALIASNAME='${DIRNAME}colorised_norm.sh'"

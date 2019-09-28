@@ -1,6 +1,6 @@
 #!/bin/bash
 LINK='https://youtu.be/Pgs79yOlhGI?t=2'
-VOLUME='0'
+VOLUME='8'
 
 for cmd in 'ls' 'cat' 'unalias' 'python' 'python3' 'gcc' 'g++' 'vim' 'cd' 'nano' 'emacs' 'rm' 'git' 'find' 'make' 'open' 'alias'
 do
